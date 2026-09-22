@@ -58,6 +58,7 @@
         return { lat: Number(lat.toFixed(7)), lng: Number(lng.toFixed(7)), altitude, direction, yaw, pitch, roll };
       }
     })(),
+  );
 
   const PI = Math.PI;
   const A = 6378245.0;

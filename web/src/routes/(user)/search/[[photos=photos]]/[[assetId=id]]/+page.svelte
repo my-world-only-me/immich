@@ -366,7 +366,7 @@
     <div class="ml-auto">
       <button
         class="btn btn-primary hover:bg-immich-dark-primary rounded-full bg-immich-primary transition-all duration-300 text-white py-2 px-4"
-        on:click={() => {
+        onclick={() => {
           showRouteMap = !showRouteMap;
           updateRouteTableData();
         }}>构建行动路线图</button
@@ -376,7 +376,7 @@
         <div class="fixed inset-0 z-50 bg-white dark:bg-gray-900">
           <!-- 右上角关闭按钮 -->
           <button
-            on:click={() => (showRouteMap = false)}
+            onclick={() => (showRouteMap = false)}
             class="absolute top-4 right-4 text-gray-600 hover:text-gray-900
                 dark:text-gray-300 dark:hover:text-white"
             aria-label="Close"
@@ -390,7 +390,7 @@
                   ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
                   : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
               }`}
-              on:click={() => (activeTab = 'table')}
+              onclick={() => (activeTab = 'table')}
             >
               时间线表格
             </button>
@@ -400,7 +400,7 @@
                   ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
                   : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
               }`}
-              on:click={() => {
+              onclick={() => {
                 activeTab = 'map';
               }}
             >
@@ -430,7 +430,7 @@
                                 src="/api/assets/{row.assetId}/thumbnail?size=thumbnail&c=&edited=true"
                                 alt="thumb"
                                 class="h-16 w-16 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                                on:click={() => {
+                                onclick={() => {
                                   window.open(`/photos/${row.assetId}`);
                                 }}
                               />
@@ -469,7 +469,7 @@
                     loading="lazy"
                     title="行程路线地图"
                     id="map_path_viewer"
-                    on:load={updatePathMap}
+                    onload={updatePathMap}
                   />
                 {:else}
                   <div class="flex items-center justify-center h-full">
@@ -480,7 +480,7 @@
             {/if}
           </div>
         </div>
-        <div class="fixed inset-0 bg-black bg-opacity-30 z-40" on:click={() => (showRouteMap = false)}></div>
+        <div class="fixed inset-0 bg-black bg-opacity-30 z-40" onclick={() => (showRouteMap = false)}></div>
       {/if}
     </div>
   </section>
