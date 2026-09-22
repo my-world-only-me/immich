@@ -16,7 +16,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -27,11 +27,16 @@ env:
 
 jobs:
   build-server:
-    name: Build and Push immich-server
+    name: Build and Push immich-server (amd64+arm64)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -58,7 +63,7 @@ jobs:
         with:
           context: .
           file: server/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -68,27 +73,16 @@ jobs:
           cache-to: type=gha,mode=max,scope=immich-server
 
   build-machine-learning:
-    name: Build and Push immich-machine-learning${{ matrix.suffix }}
+    name: Build and Push immich-machine-learning (amd64+arm64)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - device: cpu
-            suffix: ''
-          - device: cuda
-            suffix: -cuda
-          - device: openvino
-            suffix: -openvino
-          - device: rknn
-            suffix: -rknn
-          # armnn variant requires a linux/arm64 runner or very slow QEMU builds;
-          # re-enable on an arm64 runner if needed:
-          # - device: armnn
-          #   suffix: -armnn
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -104,7 +98,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.GHCR_NAMESPACE }}/immich-machine-learning${{ matrix.suffix }}
+          images: ${{ env.GHCR_NAMESPACE }}/immich-machine-learning
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
@@ -115,11 +109,11 @@ jobs:
         with:
           context: machine-learning
           file: machine-learning/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            DEVICE=${{ matrix.device }}
-          cache-from: type=gha,scope=immich-ml${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=immich-ml${{ matrix.suffix }}
+            DEVICE=cpu
+          cache-from: type=gha,scope=immich-ml
+          cache-to: type=gha,mode=max,scope=immich-ml
