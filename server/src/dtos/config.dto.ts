@@ -608,6 +608,8 @@ export const defaults = Object.freeze<SystemConfig>({
     backgroundTask: { concurrency: 5 },
     migration: { concurrency: 5 },
     search: { concurrency: 5 },
+    geoEmbedSearch: { concurrency: 5 },
+    nsfwDetection: { concurrency: 5 },
     sidecar: { concurrency: 5 },
     library: { concurrency: 5 },
     notifications: { concurrency: 5 },

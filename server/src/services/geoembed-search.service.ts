@@ -3,9 +3,9 @@ import { SystemConfig } from 'src/dtos/config.dto.js'
 import { JOBS_ASSET_PAGINATION_SIZE } from 'src/constants.js'
 import { OnEvent, OnJob } from 'src/decorators.js'
 import { AssetVisibility, DatabaseLock, ImmichWorker, JobName, JobStatus, QueueName } from 'src/enum.js'
-import { ArgOf } from 'src/repositories/event.repository.js'
+import type { ArgOf } from 'src/repositories/event.repository.js'
 import { BaseService } from 'src/services/base.service.js'
-import { JobItem, JobOf } from 'src/types.js'
+import type { JobItem, JobOf } from 'src/types.js'
 import { getCLIPModelInfo, isSmartSearchEnabled } from 'src/utils/misc.js'
 
 @Injectable()
