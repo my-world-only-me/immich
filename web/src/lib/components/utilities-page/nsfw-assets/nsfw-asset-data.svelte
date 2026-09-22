@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Thumbnail from '$lib/components/assets/thumbnail/thumbnail.svelte';
+  import Thumbnail from '$lib/components/assets/thumbnail/Thumbnail.svelte';
   import { toTimelineAsset } from '$lib/utils/timeline-util';
   import { type AssetResponseDto } from '@immich/sdk';
 
