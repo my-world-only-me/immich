@@ -122,7 +122,6 @@
     if (deg < 292.5) return 'W';
     return 'NW';
   }
-  );
   let previousId: string | undefined = $state();
   let previousRoute = $derived(currentAlbum?.id ? Route.viewAlbum(currentAlbum) : Route.photos());
 
