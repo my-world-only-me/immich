@@ -1,5 +1,5 @@
-import { AssetTable } from 'src/schema/tables/asset.table';
-import { Column, ForeignKeyColumn, Index, Table } from 'src/sql-tools';
+import { AssetTable } from 'src/schema/tables/asset.table.js'
+import { Column, ForeignKeyColumn, Index, Table } from '@immich/sql-tools'
 
 @Table({ name: 'nsfw_detection' })
 @Index({ name: 'nsfw_detection_score_idx', columns: ['score'] })

@@ -315,7 +315,7 @@ export class SearchRepository {
   })
   searchNsfwAssets(size: number, options: LargeAssetSearchOptions) {
     const orderDirection = (options.orderDirection?.toLowerCase() || 'desc') as OrderByDirection;
-    return searchAssetBuilder(this.db, options)
+    return searchAssetBuilderLegacy(this.db, options)
       .selectAll('asset')
       .innerJoin('nsfw_detection', 'asset.id', 'nsfw_detection.assetId')
       .where('nsfw_detection.score', '>', 0.5)

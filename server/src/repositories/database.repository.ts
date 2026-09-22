@@ -355,7 +355,7 @@ export class DatabaseRepository {
   }
 
   async setGeoembedDimensionSize(dimSize: number): Promise<void> {
-    if (!isValidInteger(dimSize, { min: 1, max: 2 ** 16 })) {
+    if (!Number.isInteger(dimSize) || dimSize < 1 || dimSize > 2 ** 16) {
       throw new Error(`Invalid Geoembed dimension size: ${dimSize}`);
     }
 
