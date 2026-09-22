@@ -35,6 +35,7 @@ const updatedConfig = Object.freeze<SystemConfig>({
     [QueueName.MetadataExtraction]: { concurrency: 5 },
     [QueueName.FaceDetection]: { concurrency: 2 },
     [QueueName.Search]: { concurrency: 5 },
+    [QueueName.GeoEmbedSearch]: { concurrency: 5 },
     [QueueName.Sidecar]: { concurrency: 5 },
     [QueueName.Library]: { concurrency: 5 },
     [QueueName.Migration]: { concurrency: 5 },

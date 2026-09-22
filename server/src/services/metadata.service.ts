@@ -248,8 +248,54 @@ export class MetadataService extends BaseService {
     const { width, height } = this.getImageDimensions(exifTags);
     let geo: ReverseGeocodeResult = { country: null, state: null, city: null },
       latitude: number | null = null,
-      longitude: number | null = null;
+      longitude: number | null = null,
+      altitude: number | null = null,
+      direction: number | null = null,
+      yaw: number | null = null,
+      pitch: number | null = null,
+      roll: number | null = null;
     if (this.hasGeo(exifTags)) {
+      
+      if (exifTags.GPSAltitude !== undefined) {
+        altitude = Number(exifTags.GPSAltitude);
+
+        // EXIF spec: 1 = below sea level
+        if (exifTags.GPSAltitudeRef === 1) {
+          altitude = -altitude;
+        }
+      }
+
+      if (exifTags.GPSImgDirection !== undefined) {
+        direction = Number(exifTags.GPSImgDirection);
+      }
+
+      const userComment = exifTags.UserComment;
+
+      if (typeof userComment === 'string') {
+        const yawMatch = userComment.match(/Yaw:([-\d.]+)/);
+        const pitchMatch = userComment.match(/Pitch:([-\d.]+)/);
+        const rollMatch = userComment.match(/Roll:([-\d.]+)/);
+
+        if (yawMatch) {
+          const v = Number(yawMatch[1]);
+          if (!Number.isNaN(v)) {
+            yaw = v;
+          }
+        }
+        if (pitchMatch) {
+          const v = Number(pitchMatch[1]);
+          if (!Number.isNaN(v)) {
+            pitch = v;
+          }
+        }
+        if (rollMatch) {
+          const v = Number(rollMatch[1]);
+          if (!Number.isNaN(v)) {
+            roll = v;
+          }
+        }
+      }
+
       latitude = Number(exifTags.GPSLatitude);
       longitude = Number(exifTags.GPSLongitude);
       if (reverseGeocoding.enabled) {
@@ -270,6 +316,11 @@ export class MetadataService extends BaseService {
       // gps
       latitude,
       longitude,
+      altitude,
+      direction,
+      yaw,
+      pitch,
+      roll,
       country: geo.country,
       state: geo.state,
       city: geo.city,
@@ -483,18 +534,39 @@ export class MetadataService extends BaseService {
     const { sidecarFile } = getAssetFiles(asset.files);
     const sidecarPath = sidecarFile?.path || `${asset.originalPath}.xmp`;
 
-    const { description, dateTimeOriginal, latitude, longitude, rating, tags, timeZone } = pick(
+    const { description, dateTimeOriginal, latitude, longitude, altitude, direction, yaw, pitch, roll, rating, tags, timeZone } = pick(
       {
         description: asset.exifInfo.description,
         dateTimeOriginal: asset.exifInfo.dateTimeOriginal,
         latitude: asset.exifInfo.latitude,
         longitude: asset.exifInfo.longitude,
+        altitude: asset.exifInfo.altitude,
+        direction: asset.exifInfo.direction,
+        yaw: asset.exifInfo.yaw,
+        pitch: asset.exifInfo.pitch,
+        roll: asset.exifInfo.roll,
         rating: asset.exifInfo.rating ?? 0,
         tags: asset.exifInfo.tags,
         timeZone: asset.exifInfo.timeZone,
       },
       lockedProperties,
     );
+
+    const userCommentParts: string[] = [];
+
+    if (yaw !== undefined) userCommentParts.push(`Yaw:${yaw}`);
+    if (pitch !== undefined) userCommentParts.push(`Pitch:${pitch}`);
+    if (roll !== undefined) userCommentParts.push(`Roll:${roll}`);
+
+    const userComment = userCommentParts.length > 0 ? userCommentParts.join(';') : undefined;
+
+    let gpsAltitude: number | undefined;
+    let gpsAltitudeRef: number | undefined;
+
+    if (typeof altitude === 'number') {
+      gpsAltitude = Math.abs(altitude);
+      gpsAltitudeRef = altitude < 0 ? 1 : 0; // EXIF spec
+    }
 
     const exif = omitBy(
       <Tags>{
@@ -503,6 +575,14 @@ export class MetadataService extends BaseService {
         DateTimeOriginal: mergeTimeZone(dateTimeOriginal, timeZone)?.toISO(),
         GPSLatitude: latitude,
         GPSLongitude: longitude,
+
+        GPSAltitude: gpsAltitude,
+        GPSAltitudeRef: gpsAltitudeRef,
+
+        GPSImgDirection: direction,
+
+        UserComment: userComment,
+
         Rating: rating,
         TagsList: tags,
       },

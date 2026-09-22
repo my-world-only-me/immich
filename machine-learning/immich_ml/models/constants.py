@@ -56,6 +56,9 @@ _OPENCLIP_MODELS = {
     "ViT-SO400M-16-SigLIP2-512__webli",
     "ViT-gopt-16-SigLIP2-256__webli",
     "ViT-gopt-16-SigLIP2-384__webli",
+    "sinriv/StreetCLIP-immich",
+    "sinriv/dinov2-immich",
+    "sinriv/nsfw_detection_immich",
 }
 
 
@@ -163,16 +166,16 @@ WEBLATE_TO_FLORES200 = {
 def get_model_source(model_name: str) -> ModelSource | None:
     cleaned_name = clean_name(model_name)
 
-    if cleaned_name in _INSIGHTFACE_MODELS:
+    if cleaned_name in _INSIGHTFACE_MODELS or model_name in _INSIGHTFACE_MODELS:
         return ModelSource.INSIGHTFACE
 
-    if cleaned_name in _MCLIP_MODELS:
+    if cleaned_name in _MCLIP_MODELS or model_name in _MCLIP_MODELS:
         return ModelSource.MCLIP
 
-    if cleaned_name in _OPENCLIP_MODELS:
+    if cleaned_name in _OPENCLIP_MODELS or model_name in _OPENCLIP_MODELS:
         return ModelSource.OPENCLIP
 
-    if cleaned_name in _PADDLE_MODELS:
+    if cleaned_name in _PADDLE_MODELS or model_name in _PADDLE_MODELS:
         return ModelSource.PADDLE
 
     return None

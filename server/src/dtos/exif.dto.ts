@@ -24,6 +24,11 @@ export const ExifResponseSchema = z
     exposureTime: z.string().nullish().default(null).describe('Exposure time'),
     latitude: z.number().meta({ format: 'double' }).nullish().default(null).describe('GPS latitude'),
     longitude: z.number().meta({ format: 'double' }).nullish().default(null).describe('GPS longitude'),
+    altitude: z.number().meta({ format: 'double' }).nullish().default(null).describe('GPS altitude'),
+    direction: z.number().meta({ format: 'double' }).nullish().default(null).describe('GPS direction'),
+    yaw: z.number().meta({ format: 'double' }).nullish().default(null).describe('Device yaw'),
+    pitch: z.number().meta({ format: 'double' }).nullish().default(null).describe('Device pitch'),
+    roll: z.number().meta({ format: 'double' }).nullish().default(null).describe('Device roll'),
     city: z.string().nullish().default(null).describe('City name'),
     state: z.string().nullish().default(null).describe('State/province name'),
     country: z.string().nullish().default(null).describe('Country name'),
@@ -34,7 +39,9 @@ export const ExifResponseSchema = z
   .describe('EXIF response')
   .meta({ id: 'ExifResponseDto' });
 
+
 class ExifResponseDto extends createZodDto(ExifResponseSchema) {}
+
 
 export function mapExif(entity: MaybeDehydrated<Exif>): ExifResponseDto {
   return {
@@ -54,6 +61,11 @@ export function mapExif(entity: MaybeDehydrated<Exif>): ExifResponseDto {
     exposureTime: entity.exposureTime,
     latitude: entity.latitude,
     longitude: entity.longitude,
+    altitude: entity.altitude,
+    direction: entity.direction,
+    yaw: entity.yaw,
+    pitch: entity.pitch,
+    roll: entity.roll,
     city: entity.city,
     state: entity.state,
     country: entity.country,

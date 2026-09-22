@@ -167,10 +167,12 @@ export type AdminConfigJobDto = {
     backgroundTask: AdminConfigJobSettingsDto;
     editor: AdminConfigJobSettingsDto;
     faceDetection: AdminConfigJobSettingsDto;
+    geoEmbedSearch: AdminConfigJobSettingsDto;
     integrityCheck: AdminConfigJobSettingsDto;
     library: AdminConfigJobSettingsDto;
     metadataExtraction: AdminConfigJobSettingsDto;
     migration: AdminConfigJobSettingsDto;
+    nsfwDetection: AdminConfigJobSettingsDto;
     notifications: AdminConfigJobSettingsDto;
     ocr: AdminConfigJobSettingsDto;
     search: AdminConfigJobSettingsDto;
@@ -1746,10 +1748,12 @@ export type QueuesResponseLegacyDto = {
     editor: QueueResponseLegacyDto;
     faceDetection: QueueResponseLegacyDto;
     facialRecognition: QueueResponseLegacyDto;
+    geoEmbedSearch: QueueResponseLegacyDto;
     integrityCheck: QueueResponseLegacyDto;
     library: QueueResponseLegacyDto;
     metadataExtraction: QueueResponseLegacyDto;
     migration: QueueResponseLegacyDto;
+    nsfwDetection: QueueResponseLegacyDto;
     notifications: QueueResponseLegacyDto;
     ocr: QueueResponseLegacyDto;
     search: QueueResponseLegacyDto;
@@ -2558,6 +2562,8 @@ export type SmartSearchDto = {
     query?: string;
     /** Asset ID to use as search reference */
     queryAssetId?: string;
+    /** Geo-embed asset ID to use as search reference */
+    queryGeoembedAssetId?: string;
     /** Filter by rating [1-5], or null for unrated */
     rating?: number | null;
     /** Number of results to return */
@@ -2737,10 +2743,14 @@ export type ServerFeaturesDto = {
     email: boolean;
     /** Whether facial recognition is enabled */
     facialRecognition: boolean;
+    /** Whether geo-embed search is enabled */
+    geoEmbedSearch: boolean;
     /** Whether face import is enabled */
     importFaces: boolean;
     /** Whether map feature is enabled */
     map: boolean;
+    /** Whether NSFW detection is enabled */
+    nsfwDetection: boolean;
     /** Whether OAuth is enabled */
     oauth: boolean;
     /** Whether OAuth auto-launch is enabled */
@@ -6451,6 +6461,82 @@ export function searchLargeAssets({ albumIds, city, country, createdAfter, creat
     }));
 }
 /**
+ * Search NSFW assets
+ */
+export function searchNsfwAssets({ albumIds, city, country, createdAfter, createdBefore, isEncoded, isFavorite, isMotion, isNotInAlbum, isOffline, lensModel, libraryId, make, minFileSize, model, ocr, personIds, rating, size, state, tagIds, takenAfter, takenBefore, trashedAfter, trashedBefore, $type, updatedAfter, updatedBefore, visibility, withDeleted, withExif }: {
+    albumIds?: string[];
+    city?: string | null;
+    country?: string | null;
+    createdAfter?: string;
+    createdBefore?: string;
+    isEncoded?: boolean;
+    isFavorite?: boolean;
+    isMotion?: boolean;
+    isNotInAlbum?: boolean;
+    isOffline?: boolean;
+    lensModel?: string | null;
+    libraryId?: string | null;
+    make?: string | null;
+    minFileSize?: number;
+    model?: string | null;
+    ocr?: string;
+    personIds?: string[];
+    rating?: number | null;
+    size?: number;
+    state?: string | null;
+    tagIds?: string[] | null;
+    takenAfter?: string;
+    takenBefore?: string;
+    trashedAfter?: string;
+    trashedBefore?: string;
+    $type?: AssetTypeEnum;
+    updatedAfter?: string;
+    updatedBefore?: string;
+    visibility?: AssetVisibility;
+    withDeleted?: boolean;
+    withExif?: boolean;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: AssetResponseDto[];
+    }>(`/search/nsfw-assets${QS.query(QS.explode({
+        albumIds,
+        city,
+        country,
+        createdAfter,
+        createdBefore,
+        isEncoded,
+        isFavorite,
+        isMotion,
+        isNotInAlbum,
+        isOffline,
+        lensModel,
+        libraryId,
+        make,
+        minFileSize,
+        model,
+        ocr,
+        personIds,
+        rating,
+        size,
+        state,
+        tagIds,
+        takenAfter,
+        takenBefore,
+        trashedAfter,
+        trashedBefore,
+        "type": $type,
+        updatedAfter,
+        updatedBefore,
+        visibility,
+        withDeleted,
+        withExif
+    }))}`, {
+        ...opts,
+        method: "POST"
+    }));
+}
+/**
  * Search assets by metadata
  */
 export function searchAssets({ key, slug, metadataSearchDto }: {
@@ -8191,6 +8277,8 @@ export enum QueueName {
     FaceDetection = "faceDetection",
     FacialRecognition = "facialRecognition",
     SmartSearch = "smartSearch",
+    GeoEmbedSearch = "geoEmbedSearch",
+    NsfwDetection = "nsfwDetection",
     DuplicateDetection = "duplicateDetection",
     BackgroundTask = "backgroundTask",
     StorageTemplateMigration = "storageTemplateMigration",
@@ -8277,6 +8365,7 @@ export enum JobName {
     NotifyUserSignup = "NotifyUserSignup",
     NotifyAlbumInvite = "NotifyAlbumInvite",
     NotifyAlbumUpdate = "NotifyAlbumUpdate",
+    NsfwDetection = "NsfwDetection",
     UserDelete = "UserDelete",
     UserDeleteCheck = "UserDeleteCheck",
     UserSyncUsage = "UserSyncUsage",

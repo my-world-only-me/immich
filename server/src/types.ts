@@ -387,6 +387,14 @@ export type JobItem =
   | { name: JobName.SmartSearch; data: IEntityJob }
   | { name: JobName.AssetEmptyTrash; data?: IBaseJob }
 
+  // Geo Search
+  | { name: JobName.GeoEmbedSearchQueueAll; data: IBaseJob }
+  | { name: JobName.GeoEmbedSearch; data: IEntityJob }
+
+  // NSFW Detection
+  | { name: JobName.NsfwDetectionQueueAll; data: IBaseJob }
+  | { name: JobName.NsfwDetection; data: IEntityJob }
+
   // Duplicate Detection
   | { name: JobName.AssetDetectDuplicatesQueueAll; data: IBaseJob }
   | { name: JobName.AssetDetectDuplicates; data: IEntityJob }

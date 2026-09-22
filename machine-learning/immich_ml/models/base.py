@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from shutil import rmtree
@@ -30,11 +31,12 @@ class InferenceModel(ABC):
     ) -> None:
         self.loaded = session is not None
         self.load_attempts = 0
-        self.model_name = clean_name(model_name)
+        self.model_name = model_name
         self.cache_dir = Path(cache_dir) if cache_dir is not None else self._cache_dir_default
         self.model_format = model_format if model_format is not None else self._model_format_default
         if session is not None:
             self.session = session
+        print("Model initialized:", self.model_name, "Format:", self.cache_dir, "Cached:", self.cache_dir)
 
     def download(self) -> None:
         if not self.cached:
@@ -72,8 +74,14 @@ class InferenceModel(ABC):
             ModelFormat.RKNN: ["*.armnn"],
         }
 
+        seg_model_name = self.model_name.split("/")
+        if len(seg_model_name) > 1:
+            model_name = f"{seg_model_name[0]}/{seg_model_name[1]}"
+        else:
+            model_name = f"immich-app/{clean_name(self.model_name)}"
+        os.makedirs(self.cache_dir, exist_ok=True)
         snapshot_download(
-            f"immich-app/{clean_name(self.model_name)}",
+            model_name,
             cache_dir=self.cache_dir,
             local_dir=self.cache_dir,
             ignore_patterns=ignored_patterns.get(self.model_format, []),
@@ -168,6 +176,9 @@ class InferenceModel(ABC):
 
     @property
     def _model_format_default(self) -> ModelFormat:
+        if self.model_type == "textual":
+            return ModelFormat.ONNX
+
         if rknn.is_available:
             return ModelFormat.RKNN
         elif immich_ml.sessions.ann.loader.is_available and settings.ann:

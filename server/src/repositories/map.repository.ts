@@ -85,7 +85,9 @@ export class MapRepository {
     albumIds: string[],
     { isArchived, isFavorite, fileCreatedAfter, fileCreatedBefore }: MapMarkerSearchOptions = {},
   ) {
+
     return this.mapMarkersQuery()
+
       .$if(isArchived === true, (qb) =>
         qb.where((eb) =>
           eb.or([
@@ -141,6 +143,11 @@ export class MapRepository {
         'asset_exif.city',
         'asset_exif.state',
         'asset_exif.country',
+        'asset_exif.altitude',
+        'asset_exif.direction',
+        'asset_exif.yaw',
+        'asset_exif.pitch',
+        'asset_exif.roll',
       ])
       .$narrowType<{ lat: NotNull; lon: NotNull }>();
   }

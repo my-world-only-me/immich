@@ -26,6 +26,7 @@ import {
   updated_at,
   user_delete_audit,
   user_metadata_audit,
+
 } from 'src/schema/functions.js';
 import { ActivityTable } from 'src/schema/tables/activity.table.js';
 import { AlbumAssetAuditTable } from 'src/schema/tables/album-asset-audit.table.js';
@@ -53,6 +54,8 @@ import { ClusterGroupRequestTable } from 'src/schema/tables/cluster-group-reques
 import { ClusterGroupTable } from 'src/schema/tables/cluster-group.table.js';
 import { FaceSearchTable } from 'src/schema/tables/face-search.table.js';
 import { GeodataPlacesTable } from 'src/schema/tables/geodata-places.table.js';
+import { GeoembedSearchTable } from 'src/schema/tables/geoembed-search.table.js';
+import { NsfwDetectionTable } from 'src/schema/tables/nsfw-detection.table.js';
 import { IntegrityReportTable } from 'src/schema/tables/integrity-report.table.js';
 import { LibraryTable } from 'src/schema/tables/library.table.js';
 import { MemoryAssetAuditTable } from 'src/schema/tables/memory-asset-audit.table.js';
@@ -96,6 +99,7 @@ import { WorkflowLogTable } from 'src/schema/tables/workflow-log.table.js';
 import { WorkflowStepTable } from 'src/schema/tables/workflow-step.table.js';
 import { WorkflowTable } from 'src/schema/tables/workflow.table.js';
 
+
 @Extensions(['uuid-ossp', 'unaccent', 'cube', 'earthdistance', 'pg_trgm', 'plpgsql'])
 @Database({ name: 'immich' })
 export class ImmichDatabase {
@@ -126,6 +130,7 @@ export class ImmichDatabase {
     FaceSearchTable,
     GeodataPlacesTable,
     IntegrityReportTable,
+    NsfwDetectionTable,
     LibraryTable,
     MemoryTable,
     MemoryAuditTable,
@@ -233,6 +238,10 @@ export interface DB {
   face_search: FaceSearchTable;
 
   geodata_places: GeodataPlacesTable;
+  
+  geoembed_search: GeoembedSearchTable;
+
+  nsfw_detection: NsfwDetectionTable;
 
   integrity_report: IntegrityReportTable;
 

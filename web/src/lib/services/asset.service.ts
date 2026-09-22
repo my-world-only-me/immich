@@ -306,6 +306,14 @@ export const getAssetActions = (
     onAction: () => goto(Route.search({ queryAssetId: asset.stackPrimaryAssetId ?? asset.id })),
   };
 
+  const ViewSimilarGeoEmbed: ActionItem = {
+    title: $t('view_similar_photos_by_geoembed'),
+    icon: mdiCompare,
+    $if: () =>
+      asset.visibility !== AssetVisibility.Locked && !asset.isArchived && !asset.isTrashed && smartSearchEnabled,
+    onAction: () => goto(Route.search({ queryGeoembedAssetId: asset.stackPrimaryAssetId ?? asset.id })),
+  };
+
   const RefreshFacesJob: ActionItem = {
     title: $t('refresh_faces'),
     icon: mdiHeadSyncOutline,
@@ -354,6 +362,7 @@ export const getAssetActions = (
     SetProfilePicture,
     ViewInTimeline,
     ViewSimilar,
+    ViewSimilarGeoEmbed,
     RefreshFacesJob,
     RefreshMetadataJob,
     RegenerateThumbnailJob,

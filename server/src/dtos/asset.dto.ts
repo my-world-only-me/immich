@@ -1,3 +1,4 @@
+
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 import { HistoryBuilder } from 'src/decorators.js';
@@ -5,6 +6,7 @@ import { BulkIdsSchema } from 'src/dtos/asset-ids.response.dto.js';
 import { AssetType, AssetVisibilitySchema } from 'src/enum.js';
 import { AssetStats } from 'src/repositories/asset.repository.js';
 import { IsNotSiblingOf, isoDatetimeToDate, latitudeSchema, longitudeSchema, stringToBool } from 'src/validation.js';
+
 
 const UpdateAssetBaseSchema = z
   .object({
@@ -30,6 +32,11 @@ const UpdateAssetBaseSchema = z
           .getExtensions(),
       }),
     description: z.string().optional().describe('Asset description'),
+    altitude: z.number().optional().describe('GPS altitude'),
+    direction: z.number().min(0).max(360).optional().describe('GPS direction in degrees'),
+    yaw: z.number().min(-180).max(180).optional().describe('Device yaw in degrees'),
+    pitch: z.number().min(-180).max(180).optional().describe('Device pitch in degrees'),
+    roll: z.number().min(-180).max(180).optional().describe('Device roll in degrees'),
   })
   .refine(
     (data) =>
@@ -57,11 +64,13 @@ const AssetBulkDeleteSchema = BulkIdsSchema.extend({
   force: z.boolean().optional().describe('Force delete even if in use'),
 }).meta({ id: 'AssetBulkDeleteDto' });
 
+
 export const AssetIdsSchema = z
   .object({
     assetIds: z.array(z.uuidv4()).describe('Asset IDs'),
   })
   .meta({ id: 'AssetIdsDto' });
+
 
 export enum AssetJobName {
   REFRESH_FACES = 'refresh-faces',

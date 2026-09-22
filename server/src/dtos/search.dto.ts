@@ -135,10 +135,12 @@ const IdFilterSchema = nonEmptyPartial({
   ne: z.uuidv4(),
 }).meta({ id: 'IdFilter' });
 
+
 const IdFilterNullableSchema = nonEmptyPartial({
   eq: z.uuidv4().nullable(),
   ne: z.uuidv4().nullable(),
 }).meta({ id: 'IdFilterNullable' });
+
 
 const IdsFilterSchema = nonEmptyPartial({
   any: z.array(z.uuidv4()).min(1),
@@ -392,6 +394,7 @@ const SmartSearchSchema = withShapeExclusivity(
     size: z.int().min(1).max(1000).default(100).describe('Number of results to return'),
     query: z.string().trim().optional().describe('Natural language search query'),
     queryAssetId: z.uuidv4().optional().describe('Asset ID to use as search reference'),
+    queryGeoembedAssetId: z.uuidv4().optional().describe('Geo-embed asset ID to use as search reference'),
     language: z.string().optional().describe('Search language code'),
     page: z.int().min(1).optional().describe('Page number').meta(DEPRECATED_FLAT_FIELD),
     filter: filterField,

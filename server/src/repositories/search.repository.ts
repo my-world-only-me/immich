@@ -303,6 +303,29 @@ export class SearchRepository {
   // TODO(v4): remove with the deprecated flat-field search API
   @GenerateSql({
     params: [
+      100,
+      {
+        takenAfter: DummyValue.DATE,
+        lensModel: DummyValue.STRING,
+        withStacked: true,
+        isFavorite: true,
+        userIds: [DummyValue.UUID],
+      },
+    ],
+  })
+  searchNsfwAssets(size: number, options: LargeAssetSearchOptions) {
+    const orderDirection = (options.orderDirection?.toLowerCase() || 'desc') as OrderByDirection;
+    return searchAssetBuilder(this.db, options)
+      .selectAll('asset')
+      .innerJoin('nsfw_detection', 'asset.id', 'nsfw_detection.assetId')
+      .where('nsfw_detection.score', '>', 0.5)
+      .orderBy('nsfw_detection.score', orderDirection)
+      .limit(size)
+      .execute();
+  }
+
+  @GenerateSql({
+    params: [
       { page: 1, size: 200 },
       {
         takenAfter: DummyValue.DATE,
@@ -334,10 +357,43 @@ export class SearchRepository {
   }
 
   @GenerateSql({
+    params: [
+      { page: 1, size: 50 },
+      {
+        embedding: DummyValue.VECTOR,
+      },
+    ],
+  })
+  async searchGeoEmbedding(
+    embedding: string,
+    size = 50
+  ) : Promise<MapAsset[]> {
+    const q = this.db
+      .selectFrom('asset')
+      .innerJoin(
+        'geoembed_search',
+        'asset.id',
+        'geoembed_search.assetId',
+      )
+      .selectAll('asset')   // ⭐ 关键
+      .orderBy(sql`geoembed_search.embedding <=> ${embedding}`)
+      .limit(size);
+    // console.log(q.compile());
+    return await q.execute();
+  }
+
+  @GenerateSql({
     params: [DummyValue.UUID],
   })
   async getEmbedding(assetId: string) {
     return this.db.selectFrom('smart_search').selectAll().where('assetId', '=', assetId).executeTakeFirst();
+  }
+
+  @GenerateSql({
+    params: [DummyValue.UUID],
+  })
+  async getGeoEmbedding(assetId: string) {
+    return this.db.selectFrom('geoembed_search').selectAll().where('assetId', '=', assetId).executeTakeFirst();
   }
 
   @GenerateSql({
@@ -479,6 +535,22 @@ export class SearchRepository {
       .insertInto('smart_search')
       .values({ assetId, embedding })
       .onConflict((oc) => oc.column('assetId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') })))
+      .execute();
+  }
+
+  async upsert_geoembed(assetId: string, embedding: string): Promise<void> {
+    await this.db
+      .insertInto('geoembed_search')
+      .values({ assetId, embedding })
+      .onConflict((oc) => oc.column('assetId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') })))
+      .execute();
+  }
+
+  async upsert_nsfw(assetId: string, score: number, label: string): Promise<void> {
+    await this.db
+      .insertInto('nsfw_detection')
+      .values({ assetId, score, label })
+      .onConflict((oc) => oc.column('assetId').doUpdateSet((eb) => ({ score: eb.ref('excluded.score'), label: eb.ref('excluded.label') })))
       .execute();
   }
 

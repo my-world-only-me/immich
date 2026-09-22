@@ -354,8 +354,47 @@ export class DatabaseRepository {
     await sql`vacuum analyze ${sql.table('smart_search')}`.execute(this.db);
   }
 
+  async setGeoembedDimensionSize(dimSize: number): Promise<void> {
+    if (!isValidInteger(dimSize, { min: 1, max: 2 ** 16 })) {
+      throw new Error(`Invalid Geoembed dimension size: ${dimSize}`);
+    }
+
+    // this is done in two transactions to handle concurrent writes
+    await this.db.transaction().execute(async (trx) => {
+      await sql`delete from ${sql.table('geoembed_search')}`.execute(trx);
+      await trx.schema.alterTable('geoembed_search').dropConstraint('dim_size_constraint').ifExists().execute();
+      await sql`alter table ${sql.table('geoembed_search')} add constraint dim_size_constraint check (array_length(embedding::real[], 1) = ${sql.lit(dimSize)})`.execute(
+        trx,
+      );
+    });
+
+    const vectorExtension = await this.getVectorExtension();
+    await this.db.transaction().execute(async (trx) => {
+      await sql`drop index if exists geoembed_index`.execute(trx);
+      await trx.schema
+        .alterTable('geoembed_search')
+        .alterColumn('embedding', (col) => col.setDataType(sql.raw(`vector(${dimSize})`)))
+        .execute();
+      await sql
+        .raw(vectorIndexQuery({ vectorExtension, table: 'geoembed_search', indexName: VectorIndex.Clip }))
+        .execute(trx);
+      await trx.schema.alterTable('geoembed_search').dropConstraint('dim_size_constraint').ifExists().execute();
+    });
+    probes[VectorIndex.Clip] = 1;
+
+    await sql`vacuum analyze ${sql.table('geoembed_search')}`.execute(this.db);
+  }
+
   async deleteAllSearchEmbeddings(): Promise<void> {
     await sql`truncate ${sql.table('smart_search')}`.execute(this.db);
+  }
+
+  async deleteAllGeoEmbeddings(): Promise<void> {
+    await sql`truncate ${sql.table('geoembed_search')}`.execute(this.db);
+  }
+
+  async deleteAllNSFWDetection(): Promise<void> {
+    await sql`truncate ${sql.table('nsfw_detection')}`.execute(this.db);
   }
 
   private targetListCount(count: number) {

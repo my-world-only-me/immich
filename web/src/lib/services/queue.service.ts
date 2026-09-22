@@ -188,6 +188,16 @@ export const asQueueItem = ($t: MessageFormatter, queue: { name: QueueName }): Q
       title: $t('admin.machine_learning_smart_search'),
       subtitle: $t('admin.smart_search_job_description'),
     },
+    [QueueName.GeoEmbedSearch]: {
+      icon: mdiImageSearch,
+      title: $t('admin.machine_learning_geoembed_search'),
+      subtitle: $t('admin.geoembed_search_job_description'),
+    },
+    [QueueName.NsfwDetection]: {
+      icon: mdiImageSearch,
+      title: $t('admin.machine_learning_nsfw_detection'),
+      subtitle: $t('admin.nsfw_detection_job_description'),
+    },
     [QueueName.DuplicateDetection]: {
       icon: mdiContentDuplicate,
       title: $t('admin.machine_learning_duplicate_detection'),

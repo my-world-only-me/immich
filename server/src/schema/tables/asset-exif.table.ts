@@ -65,6 +65,21 @@ export class AssetExifTable {
   @Column({ type: 'double precision', nullable: true })
   longitude!: number | null;
 
+  @Column({ type: 'double precision', nullable: true })
+  altitude!: number | null;
+
+  @Column({ type: 'double precision', nullable: true })
+  direction!: number | null;
+
+  @Column({ type: 'double precision', nullable: true })
+  yaw!: number | null;
+  
+  @Column({ type: 'double precision', nullable: true })
+  pitch!: number | null;
+
+  @Column({ type: 'double precision', nullable: true })
+  roll!: number | null;
+
   @Column({ type: 'character varying', nullable: true, index: true })
   city!: string | null;
 

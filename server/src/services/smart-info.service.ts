@@ -115,6 +115,8 @@ export class SmartInfoService extends BaseService {
 
     await this.searchRepository.upsert(asset.id, embedding);
 
+    // inference streetclip embedding and store in geoembed search table
+
     return JobStatus.Success;
   }
 }

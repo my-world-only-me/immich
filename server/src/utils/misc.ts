@@ -96,6 +96,10 @@ export const unsetDeep = (object: unknown, key: string) => {
 const isMachineLearningEnabled = (machineLearning: SystemConfig['machineLearning']) => machineLearning.enabled;
 export const isSmartSearchEnabled = (machineLearning: SystemConfig['machineLearning']) =>
   isMachineLearningEnabled(machineLearning) && machineLearning.clip.enabled;
+export const isGeoEmbedSearchEnabled = (machineLearning: SystemConfig['machineLearning']) =>
+  isMachineLearningEnabled(machineLearning) && machineLearning.geoclip.enabled;
+export const isNsfwDetectionEnabled = (machineLearning: SystemConfig['machineLearning']) =>
+  isMachineLearningEnabled(machineLearning) && machineLearning.nsfwDetection.enabled;
 export const isOcrEnabled = (machineLearning: SystemConfig['machineLearning']) =>
   isMachineLearningEnabled(machineLearning) && machineLearning.ocr.enabled;
 export const isFacialRecognitionEnabled = (machineLearning: SystemConfig['machineLearning']) =>
@@ -150,12 +154,16 @@ function cleanModelName(modelName: string): string {
 }
 
 export function getCLIPModelInfo(modelName: string) {
-  const modelInfo = CLIP_MODEL_INFO[cleanModelName(modelName)];
-  if (!modelInfo) {
-    throw new Error(`Unknown CLIP model: ${modelName}`);
+  let modelInfo = CLIP_MODEL_INFO[cleanModelName(modelName)];
+  if (modelInfo) {
+    return modelInfo;
   }
+  modelInfo = CLIP_MODEL_INFO[modelName];
+  if (modelInfo) {
+    return modelInfo;
+  }
+  throw new Error(`Unknown CLIP model: ${modelName}`);
 
-  return modelInfo;
 }
 
 function sortKeys<T>(target: T): T {

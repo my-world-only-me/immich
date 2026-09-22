@@ -177,6 +177,8 @@ export class JobService extends BaseService {
 
         const jobs: JobItem[] = [
           { name: JobName.SmartSearch, data: item.data },
+          { name: JobName.GeoEmbedSearch, data: item.data },
+          { name: JobName.NsfwDetection, data: item.data },
           { name: JobName.AssetDetectFaces, data: item.data },
           { name: JobName.Ocr, data: item.data },
         ];
@@ -226,6 +228,11 @@ export class JobService extends BaseService {
                 timeZone: exif.timeZone,
                 latitude: exif.latitude,
                 longitude: exif.longitude,
+                altitude: exif.altitude,
+                direction: exif.direction,
+                yaw: exif.yaw,
+                pitch: exif.pitch,
+                roll: exif.roll,
                 projectionType: exif.projectionType,
                 city: exif.city,
                 state: exif.state,

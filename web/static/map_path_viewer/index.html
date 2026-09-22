@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <title>map path viewer</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="leaflet.css" />
+  <script src="leaflet.js"></script>
+
+  <!-- Polyline Decorator（箭头） -->
+  <script src="leaflet.polylineDecorator.js"></script>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* 路线线条样式 */
+    .route-line {
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <script>
+    // ====== 坐标系转换：WGS84 -> GCJ02 ======
+    const PI = Math.PI;
+    const A = 6378245.0;
+    const EE = 0.00669342162296594323;
+
+    function outOfChina(lat, lon) {
+      return lon < 72.004 || lon > 137.8347 || lat < 0.8293 || lat > 55.8271;
+    }
+
+    function transformLat(x, y) {
+      let ret =
+        -100.0 +
+        2.0 * x +
+        3.0 * y +
+        0.2 * y * y +
+        0.1 * x * y +
+        0.2 * Math.sqrt(Math.abs(x));
+      ret +=
+        ((20.0 * Math.sin(6.0 * x * PI) +
+          20.0 * Math.sin(2.0 * x * PI)) *
+          2.0) /
+        3.0;
+      ret +=
+        ((20.0 * Math.sin(y * PI) +
+          40.0 * Math.sin((y / 3.0) * PI)) *
+          2.0) /
+        3.0;
+      ret +=
+        ((160.0 * Math.sin((y / 12.0) * PI) +
+          320 * Math.sin((y * PI) / 30.0)) *
+          2.0) /
+        3.0;
+      return ret;
+    }
+
+    function transformLon(x, y) {
+      let ret =
+        300.0 +
+        x +
+        2.0 * y +
+        0.1 * x * x +
+        0.1 * x * y +
+        0.1 * Math.sqrt(Math.abs(x));
+      ret +=
+        ((20.0 * Math.sin(6.0 * x * PI) +
+          20.0 * Math.sin(2.0 * x * PI)) *
+          2.0) /
+        3.0;
+      ret +=
+        ((20.0 * Math.sin(x * PI) +
+          40.0 * Math.sin((x / 3.0) * PI)) *
+          2.0) /
+        3.0;
+      ret +=
+        ((150.0 * Math.sin((x / 12.0) * PI) +
+          300.0 * Math.sin((x / 30.0) * PI)) *
+          2.0) /
+        3.0;
+      return ret;
+    }
+
+    function wgs84ToGcj02(lat, lon) {
+      if (outOfChina(lat, lon)) {
+        return [lat, lon];
+      }
+      let dLat = transformLat(lon - 105.0, lat - 35.0);
+      let dLon = transformLon(lon - 105.0, lat - 35.0);
+      let radLat = (lat / 180.0) * PI;
+      let magic = Math.sin(radLat);
+      magic = 1 - EE * magic * magic;
+      let sqrtMagic = Math.sqrt(magic);
+      dLat =
+        (dLat * 180.0) /
+        (((A * (1 - EE)) / (magic * sqrtMagic)) * PI);
+      dLon =
+        (dLon * 180.0) /
+        ((A / sqrtMagic) * Math.cos(radLat) * PI);
+      return [lat + dLat, lon + dLon];
+    }
+
+    // ====== 1. 初始化地图 ======
+    const map = L.map('map');
+
+    L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+      subdomains: ['1','2','3','4'],
+      attribution: '高德地图',
+      maxZoom: 18
+    }).addTo(map);
+
+    // ====== 2. 图层容器（用于清理） ======
+    let routeLayer = L.layerGroup().addTo(map);
+
+    // ====== 3. 监听外部消息 ======
+    onmessage = function (e) {
+      const data = e.data?.routeTableData;
+      if (!Array.isArray(data) || data.length === 0) {
+        return;
+      }
+
+      for (const item of data) {
+        // 坐标系转换
+        const [lat, lon] = wgs84ToGcj02(
+          item.latitude,
+          item.longitude
+        );
+        item.latitude = lat;
+        item.longitude = lon;
+      }
+
+      // 清理旧路线
+      routeLayer.clearLayers();
+
+      // 按时间排序（非常重要）
+      const sorted = [...data].sort(
+        (a, b) => new Date(a.dateTime) - new Date(b.dateTime)
+      );
+
+      // 转为 Leaflet 坐标
+      const latlngs = sorted.map(item => [
+        item.latitude,
+        item.longitude
+      ]);
+
+      // ====== 4. 画主线边框（白色背景线，增强视觉效果） ======
+      const outlineLine = L.polyline(latlngs, {
+        color: '#ffffff',      // 白色边框
+        weight: 10,            // 比主线宽2px
+        opacity: 0.5,          // 半透明
+        lineCap: 'round',      // 圆角端点
+        lineJoin: 'round',     // 圆角连接
+        interactive: false     // 不响应鼠标事件
+      }).addTo(routeLayer);
+      
+      // 将边框移到最底层
+      outlineLine.bringToBack();
+
+      // ====== 5. 画主路线（粗线） ======
+      const mainLine = L.polyline(latlngs, {
+        color: '#3388ff',      // 蓝色主线
+        weight: 8,             // 粗线
+        opacity: 0.85,
+        lineCap: 'round',
+        lineJoin: 'round',
+        className: 'route-line' // 应用CSS类
+      }).addTo(routeLayer);
+
+      // ====== 6. 添加密集小箭头（内部箭头） ======
+      const smallArrows = L.polylineDecorator(mainLine, {
+        patterns: [
+          {
+            offset: '0%',           // 从起点开始
+            repeat: '25px',         // 每25像素一个（密集）
+            symbol: L.Symbol.arrowHead({
+              pixelSize: 8,         // 小箭头
+              polygon: true,        // 实心箭头
+              headAngle: 45,        // 箭头角度
+              pathOptions: {
+                stroke: false,      // 无边框
+                fill: true,
+                fillColor: '#ffffff', // 白色箭头
+                fillOpacity: 0.9,
+                weight: 0
+              }
+            })
+          }
+        ]
+      }).addTo(routeLayer);
+
+      // ====== 7. 添加大箭头（更明显，间隔稍大） ======
+      const largeArrows = L.polylineDecorator(mainLine, {
+        patterns: [
+          {
+            offset: '10%',          // 从10%位置开始
+            repeat: '100px',        // 每100像素一个
+            symbol: L.Symbol.arrowHead({
+              pixelSize: 12,        // 中等大小
+              polygon: true,
+              headAngle: 60,
+              pathOptions: {
+                stroke: true,
+                color: '#3388ff',
+                weight: 1,
+                fill: true,
+                fillColor: '#ffffff',
+                fillOpacity: 1
+              }
+            })
+          }
+        ]
+      }).addTo(routeLayer);
+
+      // ====== 8. 每个点画圆点 + popup ======
+      sorted.forEach((item, index) => {
+        // 外层圆环
+        const marker = L.circleMarker(
+          [item.latitude, item.longitude],
+          {
+            radius: 7,
+            color: index === 0
+              ? '#4CAF50'       // 起点绿色
+              : index === sorted.length - 1
+                ? '#F44336'     // 终点红色
+                : '#FFC107',    // 中间点黄色
+            weight: 2,
+            fillColor: '#ffffff', // 白色填充
+            fillOpacity: 1
+          }
+        ).addTo(routeLayer);
+        
+        // 内层实心圆点
+        L.circleMarker(
+          [item.latitude, item.longitude],
+          {
+            radius: 3,
+            color: 'transparent',
+            fillColor: index === 0
+              ? '#4CAF50'
+              : index === sorted.length - 1
+                ? '#F44336'
+                : '#3388ff',
+            fillOpacity: 1,
+            weight: 0
+          }
+        ).addTo(routeLayer);
+
+        // popup 内容（点击 icon 跳转）
+        const popupHtml = `
+        <div style="text-align:center; min-width: 150px;">
+          <img
+            src="${item.iconUrl}"
+            style="width:120px;height:auto;cursor:pointer;border-radius:4px;margin-bottom:8px;"
+            onclick="window.open('${item.imageUrl}', '_blank')"
+            alt="点位图片"
+          />
+          <div style="font-size:13px;color:#666;margin-bottom:4px;">
+            ${new Date(item.dateTime).toLocaleString()}
+          </div>
+          <div style="font-size:12px;color:#999;">
+            ${index + 1}/${sorted.length}
+          </div>
+        </div>
+      `;
+
+        marker.bindPopup(popupHtml);
+      });
+
+      // ====== 9. 自动缩放到完整路线 ======
+      map.fitBounds(mainLine.getBounds(), {
+        padding: [40, 40]
+      });
+    };
+  </script>
+</body>
+
+</html>

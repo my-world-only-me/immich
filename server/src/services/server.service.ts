@@ -24,6 +24,8 @@ import {
   isFacialRecognitionEnabled,
   isOcrEnabled,
   isSmartSearchEnabled,
+  isGeoEmbedSearchEnabled,
+  isNsfwDetectionEnabled,
 } from 'src/utils/misc.js';
 
 @Injectable()
@@ -92,6 +94,8 @@ export class ServerService extends BaseService {
 
     return {
       smartSearch: isSmartSearchEnabled(machineLearning),
+      geoEmbedSearch: isGeoEmbedSearchEnabled(machineLearning),
+      nsfwDetection: isNsfwDetectionEnabled(machineLearning),
       facialRecognition: isFacialRecognitionEnabled(machineLearning),
       duplicateDetection: isDuplicateDetectionEnabled(machineLearning),
       map: map.enabled,

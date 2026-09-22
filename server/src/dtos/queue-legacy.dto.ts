@@ -27,6 +27,8 @@ const QueuesResponseLegacySchema = z
     [QueueName.Migration]: QueueResponseLegacySchema,
     [QueueName.BackgroundTask]: QueueResponseLegacySchema,
     [QueueName.Search]: QueueResponseLegacySchema,
+    [QueueName.GeoEmbedSearch]: QueueResponseLegacySchema,
+    [QueueName.NsfwDetection]: QueueResponseLegacySchema,
     [QueueName.DuplicateDetection]: QueueResponseLegacySchema,
     [QueueName.FaceDetection]: QueueResponseLegacySchema,
     [QueueName.FacialRecognition]: QueueResponseLegacySchema,
@@ -41,8 +43,10 @@ const QueuesResponseLegacySchema = z
   })
   .meta({ id: 'QueuesResponseLegacyDto' });
 
+
 export class QueueResponseLegacyDto extends createZodDto(QueueResponseLegacySchema) {}
 export class QueuesResponseLegacyDto extends createZodDto(QueuesResponseLegacySchema) {}
+
 
 export const mapQueueLegacy = (response: QueueResponseDto): QueueResponseLegacyDto => {
   return {

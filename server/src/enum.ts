@@ -816,6 +816,8 @@ export enum QueueName {
   FaceDetection = 'faceDetection',
   FacialRecognition = 'facialRecognition',
   SmartSearch = 'smartSearch',
+  GeoEmbedSearch = 'geoEmbedSearch',
+  NsfwDetection = 'nsfwDetection',
   DuplicateDetection = 'duplicateDetection',
   BackgroundTask = 'backgroundTask',
   StorageTemplateMigration = 'storageTemplateMigration',
@@ -910,6 +912,12 @@ export enum JobName {
   SmartSearchQueueAll = 'SmartSearchQueueAll',
   SmartSearch = 'SmartSearch',
 
+  GeoEmbedSearchQueueAll = 'GeoEmbedSearchQueueAll',
+  GeoEmbedSearch = 'GeoEmbedSearch',
+
+  NsfwDetectionQueueAll = 'NsfwDetectionQueueAll',
+  NsfwDetection = 'NsfwDetection',
+
   StorageTemplateMigration = 'StorageTemplateMigration',
   StorageTemplateMigrationSingle = 'StorageTemplateMigrationSingle',
 
@@ -978,6 +986,7 @@ export enum DatabaseLock {
   StorageTemplateMigration = 420,
   VersionHistory = 500,
   CLIPDimSize = 512,
+  GEOCLIPDimSize = 512,
   Library = 1337,
   NightlyJobs = 600,
   PluginImport = 666,

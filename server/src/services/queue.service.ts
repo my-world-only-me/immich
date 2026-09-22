@@ -209,6 +209,14 @@ export class QueueService extends BaseService {
         return this.jobRepository.queue({ name: JobName.SmartSearchQueueAll, data: { force } });
       }
 
+      case QueueName.GeoEmbedSearch: {
+        return this.jobRepository.queue({ name: JobName.GeoEmbedSearchQueueAll, data: { force } });
+      }
+
+      case QueueName.NsfwDetection: {
+        return this.jobRepository.queue({ name: JobName.NsfwDetectionQueueAll, data: { force } });
+      }
+
       case QueueName.DuplicateDetection: {
         return this.jobRepository.queue({ name: JobName.AssetDetectDuplicatesQueueAll, data: { force } });
       }

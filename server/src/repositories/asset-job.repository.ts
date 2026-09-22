@@ -218,6 +218,26 @@ export class AssetJobRepository {
       )
       .stream();
   }
+  
+  @GenerateSql({ params: [], stream: true })
+  streamForEncodeGeoEmbed(force?: boolean) {
+    return this.assetsWithPreviews()
+      .select(['asset.id'])
+      .$if(!force, (qb) =>
+        qb.where((eb) => eb.not((eb) => eb.exists(eb.selectFrom('geoembed_search').whereRef('assetId', '=', 'asset.id')))),
+      )
+      .stream();
+  }
+
+  @GenerateSql({ params: [], stream: true })
+  streamForNsfwDetection(force?: boolean) {
+    return this.assetsWithPreviews()
+      .select(['asset.id'])
+      .$if(!force, (qb) =>
+        qb.where((eb) => eb.not((eb) => eb.exists(eb.selectFrom('nsfw_detection').whereRef('assetId', '=', 'asset.id')))),
+      )
+      .stream();
+  }
 
   @GenerateSql({ params: [DummyValue.UUID] })
   getForClipEncoding(id: string) {

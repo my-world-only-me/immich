@@ -145,6 +145,11 @@ const SyncAssetExifV1Schema = z
     timeZone: z.string().nullable().describe('Time zone'),
     latitude: z.number().meta({ format: 'double' }).nullable().describe('Latitude'),
     longitude: z.number().meta({ format: 'double' }).nullable().describe('Longitude'),
+    altitude: z.number().meta({ format: 'double' }).nullable().describe('Altitude'),
+    direction: z.number().meta({ format: 'double' }).nullable().describe('Direction'),
+    yaw: z.number().meta({ format: 'double' }).nullable().describe('Device yaw'),
+    pitch: z.number().meta({ format: 'double' }).nullable().describe('Device pitch'),
+    roll: z.number().meta({ format: 'double' }).nullable().describe('Device roll'),
     projectionType: z.string().nullable().describe('Projection type'),
     city: z.string().nullable().describe('City'),
     state: z.string().nullable().describe('State'),
@@ -448,7 +453,9 @@ class SyncStackV1 extends createZodDto(SyncStackV1Schema) {}
 @ExtraModel()
 class SyncStackDeleteV1 extends createZodDto(SyncStackDeleteV1Schema) {}
 @ExtraModel()
+
 class SyncPersonV1 extends createZodDto(SyncPersonV1Schema) {}
+
 @ExtraModel()
 class SyncPersonDeleteV1 extends createZodDto(SyncPersonDeleteV1Schema) {}
 @ExtraModel()

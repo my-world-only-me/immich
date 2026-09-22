@@ -28,7 +28,10 @@ class BaseCLIPVisualEncoder(InferenceModel):
 
     def _predict(self, inputs: Image.Image | bytes) -> str:
         image = decode_pil(inputs)
-        res: NDArray[np.float32] = self.session.run(None, self.transform(image))[0][0]
+        # print("image:", image.size)
+        transformed_img = self.transform(image)
+        # print("transformed_img:", transformed_img["image"].shape)
+        res: NDArray[np.float32] = self.session.run(None, transformed_img)[0][0]
         return serialize_np_array(res)
 
     @abstractmethod
@@ -61,6 +64,7 @@ class BaseCLIPVisualEncoder(InferenceModel):
 class OpenClipVisualEncoder(BaseCLIPVisualEncoder):
     def _load(self) -> ModelSession:
         size: list[int] | int = self.preprocess_cfg["size"]
+        # print("OpenClipVisualEncoder:", self.preprocess_cfg)
         self.size = size[0] if isinstance(size, list) else size
 
         self.resampling = get_pil_resampling(self.preprocess_cfg["interpolation"])

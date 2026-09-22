@@ -147,6 +147,8 @@ const ServerFeaturesSchema = z
     email: z.boolean().describe('Whether email notifications are enabled'),
     ocr: z.boolean().describe('Whether OCR is enabled'),
     realtimeTranscoding: z.boolean().describe('Whether real-time transcoding is enabled'),
+    geoEmbedSearch: z.boolean().describe('Whether geo-embed search is enabled'),
+    nsfwDetection: z.boolean().describe('Whether NSFW detection is enabled'),
   })
   .meta({ id: 'ServerFeaturesDto' });
 
@@ -193,5 +195,7 @@ export class ServerMediaTypesResponseDto extends createZodDto(ServerMediaTypesRe
 export class ServerConfigDto extends createZodDto(ServerConfigSchema) {}
 export class ServerFeaturesDto extends createZodDto(ServerFeaturesSchema) {}
 
+
 @ExtraModel()
 export class ReleaseEventV1 extends createZodDto(ReleaseEventV1Schema) {}
+

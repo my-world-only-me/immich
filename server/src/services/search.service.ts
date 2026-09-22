@@ -165,6 +165,16 @@ export class SearchService extends BaseService {
     return items.map((item) => mapAsset(item, { auth }));
   }
 
+  async searchNsfwAssets(auth: AuthDto, dto: LargeAssetSearchDto): Promise<AssetResponseDto[]> {
+    if (dto.visibility === AssetVisibility.Locked) {
+      requireElevatedPermission(auth);
+    }
+
+    const userIds = await this.getUserIdsToSearch(auth);
+    const items = await this.searchRepository.searchNsfwAssets(dto.size || 250, { ...dto, userIds });
+    return items.map((item) => mapAsset(item, { auth }));
+  }
+
   async searchSmart(auth: AuthDto, dto: SmartSearchDto): Promise<SearchResponseDto> {
     if (isNewShapeRequest(dto)) {
       return this.searchSmartV3(auth, dto);
@@ -177,6 +187,20 @@ export class SearchService extends BaseService {
     const { machineLearning } = await this.getConfig({ withCache: false });
     if (!isSmartSearchEnabled(machineLearning)) {
       throw new BadRequestException('Smart search is not enabled');
+    }
+
+    if (dto.queryGeoembedAssetId) {
+      await this.requireAccess({ auth, permission: Permission.AssetRead, ids: [dto.queryGeoembedAssetId] });
+      const getEmbeddingResponse = await this.searchRepository.getGeoEmbedding(dto.queryGeoembedAssetId);
+      const geoembedding = getEmbeddingResponse?.embedding;
+      if (!geoembedding) {
+        throw new BadRequestException(`Asset ${dto.queryGeoembedAssetId} has no geo embedding`);
+      }
+
+      const geoPage = dto.page ?? 1;
+      const geoSize = dto.size ?? 50;
+      const geoResults = await this.searchRepository.searchGeoEmbedding(geoembedding, geoSize);
+      return this.mapResponse(geoResults, { auth }, { nextPage: null });
     }
 
     const userIds = this.getUserIdsToSearch(auth, dto.visibility);

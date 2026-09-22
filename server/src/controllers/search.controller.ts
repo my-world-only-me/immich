@@ -78,6 +78,18 @@ export class SearchController {
   searchLargeAssets(@Auth() auth: AuthDto, @Query() dto: LargeAssetSearchDto): Promise<AssetResponseDto[]> {
     return this.service.searchLargeAssets(auth, dto);
   }
+  
+  @Post('nsfw-assets')
+  @Authenticated({ permission: Permission.AssetRead })
+  @HttpCode(HttpStatus.OK)
+  @Endpoint({
+    summary: 'Search NSFW assets',
+    description: 'Search for assets that are considered NSFW based on specified criteria.',
+    history: new HistoryBuilder().added('v1').beta('v1').stable('v2'),
+  })
+  searchNsfwAssets(@Auth() auth: AuthDto, @Query() dto: LargeAssetSearchDto): Promise<AssetResponseDto[]> {
+    return this.service.searchNsfwAssets(auth, dto);
+  }
 
   @Post('smart')
   @Authenticated({ permission: Permission.AssetRead })
