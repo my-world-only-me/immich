@@ -56,6 +56,7 @@ jobs:
           images: ${{ env.GHCR_NAMESPACE }}/immich-server
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=v3,enable={{is_default_branch}}
             type=ref,event=tag
             type=sha,format=long,prefix=commit-
 
@@ -102,6 +103,7 @@ jobs:
           images: ${{ env.GHCR_NAMESPACE }}/immich-machine-learning
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=v3,enable={{is_default_branch}}
             type=ref,event=tag
             type=sha,format=long,prefix=commit-
 
@@ -145,11 +147,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.GHCR_NAMESPACE }}/immich-machine-learning-rknn
+          # 与官方命名对齐：rknn 变体也发布到 immich-machine-learning 包，只是 tag 带 -rknn 后缀
+          # 这样 compose 里只改仓库前缀（ghcr.io/immich-app <-> ghcr.io/my-world-only-me）即可切换
+          # 注意：不能打 latest / 不带后缀的 tag，否则会与上面的 CPU 构建互相覆盖
+          images: ${{ env.GHCR_NAMESPACE }}/immich-machine-learning
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=tag
-            type=sha,format=long,prefix=commit-
+            type=raw,value=v3-rknn,enable={{is_default_branch}}
+            type=sha,format=long,prefix=commit-rknn-
 
       - name: Build and push
         uses: docker/build-push-action@v6
