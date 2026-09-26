@@ -127,6 +127,8 @@ export class ServerService extends BaseService {
       publicUsers: config.server.publicUsers,
       mapDarkStyleUrl: config.map.darkStyle,
       mapLightStyleUrl: config.map.lightStyle,
+      mapProvider: config.map.provider,
+      mapCoordinateSystem: config.map.coordinateSystem,
       maintenanceMode: false,
       minFaces: config.machineLearning.facialRecognition.minFaces,
     };

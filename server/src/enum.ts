@@ -568,6 +568,29 @@ export enum Colorspace {
 
 export const ColorspaceSchema = z.enum(Colorspace).describe('Colorspace').meta({ id: 'Colorspace' });
 
+export enum MapProvider {
+  Immich = 'immich',
+  Amap = 'amap',
+  AmapSatellite = 'amapSatellite',
+  Tencent = 'tencent',
+  Osm = 'osm',
+  Carto = 'carto',
+  Custom = 'custom',
+}
+
+export const MapProviderSchema = z.enum(MapProvider).describe('Map tile provider').meta({ id: 'MapProvider' });
+
+export enum MapCoordinateSystem {
+  Wgs84 = 'wgs84',
+  Gcj02 = 'gcj02',
+  Bd09 = 'bd09',
+}
+
+export const MapCoordinateSystemSchema = z
+  .enum(MapCoordinateSystem)
+  .describe('Coordinate reference system used by the selected map tiles')
+  .meta({ id: 'MapCoordinateSystem' });
+
 export enum ImageFormat {
   Jpeg = 'jpeg',
   Webp = 'webp',

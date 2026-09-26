@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import type { SemVer } from 'semver';
 import { ExtraModel, HistoryBuilder } from 'src/decorators';
+import { MapCoordinateSystemSchema, MapProviderSchema } from 'src/enum';
 import { isoDatetimeToDate } from 'src/validation';
 import z from 'zod';
 
@@ -124,6 +125,8 @@ const ServerConfigSchema = z
     publicUsers: z.boolean().describe('Whether public user registration is enabled'),
     mapDarkStyleUrl: z.string().describe('Map dark style URL'),
     mapLightStyleUrl: z.string().describe('Map light style URL'),
+    mapProvider: MapProviderSchema,
+    mapCoordinateSystem: MapCoordinateSystemSchema,
     maintenanceMode: z.boolean().describe('Whether maintenance mode is active'),
     minFaces: z.int().describe('People min faces server default'),
   })

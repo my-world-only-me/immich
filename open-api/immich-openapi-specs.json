@@ -19012,6 +19012,9 @@
       },
       "AdminConfigMapDto": {
         "properties": {
+          "coordinateSystem": {
+            "$ref": "#/components/schemas/MapCoordinateSystem"
+          },
           "darkStyle": {
             "description": "Dark map style URL",
             "format": "uri",
@@ -19025,12 +19028,17 @@
             "description": "Light map style URL",
             "format": "uri",
             "type": "string"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/MapProvider"
           }
         },
         "required": [
+          "coordinateSystem",
           "darkStyle",
           "enabled",
-          "lightStyle"
+          "lightStyle",
+          "provider"
         ],
         "type": "object"
       },
@@ -22932,6 +22940,15 @@
         ],
         "type": "string"
       },
+      "MapCoordinateSystem": {
+        "description": "Coordinate reference system used by the selected map tiles",
+        "enum": [
+          "wgs84",
+          "gcj02",
+          "bd09"
+        ],
+        "type": "string"
+      },
       "MapMarkerResponseDto": {
         "properties": {
           "city": {
@@ -22975,6 +22992,19 @@
           "state"
         ],
         "type": "object"
+      },
+      "MapProvider": {
+        "description": "Map tile provider",
+        "enum": [
+          "immich",
+          "amap",
+          "amapSatellite",
+          "tencent",
+          "osm",
+          "carto",
+          "custom"
+        ],
+        "type": "string"
       },
       "MapReverseGeocodeResponseDto": {
         "properties": {
@@ -27190,6 +27220,9 @@
             "description": "Whether maintenance mode is active",
             "type": "boolean"
           },
+          "mapCoordinateSystem": {
+            "$ref": "#/components/schemas/MapCoordinateSystem"
+          },
           "mapDarkStyleUrl": {
             "description": "Map dark style URL",
             "type": "string"
@@ -27197,6 +27230,9 @@
           "mapLightStyleUrl": {
             "description": "Map light style URL",
             "type": "string"
+          },
+          "mapProvider": {
+            "$ref": "#/components/schemas/MapProvider"
           },
           "minFaces": {
             "description": "People min faces server default",
@@ -27236,8 +27272,10 @@
           "isOnboarded",
           "loginPageMessage",
           "maintenanceMode",
+          "mapCoordinateSystem",
           "mapDarkStyleUrl",
           "mapLightStyleUrl",
+          "mapProvider",
           "minFaces",
           "oauthButtonText",
           "publicUsers",

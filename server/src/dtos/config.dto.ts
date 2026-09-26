@@ -15,6 +15,8 @@ import {
   ImageFormatSchema,
   LogLevel,
   LogLevelSchema,
+  MapCoordinateSystemSchema,
+  MapProviderSchema,
   OAuthTokenEndpointAuthMethod,
   OAuthTokenEndpointAuthMethodSchema,
   ReleaseChannel,
@@ -265,6 +267,8 @@ const AdminConfigSchemaWithVisibility = z
         enabled: configBool.describe('Enabled').meta({ visibility: User }),
         lightStyle: z.url().describe('Light map style URL').meta({ visibility: User }),
         darkStyle: z.url().describe('Dark map style URL').meta({ visibility: User }),
+        provider: MapProviderSchema.meta({ visibility: User }),
+        coordinateSystem: MapCoordinateSystemSchema.meta({ visibility: User }),
       })
       .meta({ id: 'AdminConfigMapDto' }),
     reverseGeocoding: z
@@ -651,6 +655,8 @@ export const defaults = Object.freeze<SystemConfig>({
     enabled: true,
     lightStyle: 'https://tiles.immich.cloud/v1/style/light.json',
     darkStyle: 'https://tiles.immich.cloud/v1/style/dark.json',
+    provider: 'immich',
+    coordinateSystem: 'wgs84',
   },
   reverseGeocoding: {
     enabled: true,

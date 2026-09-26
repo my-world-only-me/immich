@@ -18,7 +18,7 @@
   import MapSettingsModal from '$lib/modals/MapSettingsModal.svelte';
   import { mapSettings } from '$lib/stores/preferences.store';
   import { getAssetMediaUrl, handlePromiseError } from '$lib/utils';
-  import { getMapMarkers, type MapMarkerResponseDto } from '@immich/sdk';
+  import { getMapMarkers, MapCoordinateSystem, type MapMarkerResponseDto } from '@immich/sdk';
   import { Alert, Container, Icon, modalManager, Text, Theme, themeManager } from '@immich/ui';
   import { mdiCog, mdiImageMultiple, mdiMap, mdiMapMarker } from '@mdi/js';
   import type { Feature, GeoJsonProperties, Geometry, Point } from 'geojson';
@@ -49,6 +49,8 @@
     Popup,
     ScaleControl,
   } from 'svelte-maplibre';
+  import { fromMapCoordinate, toMapCoordinate } from './coordinate-transform';
+  import { getProviderStyle } from './map-provider-styles';
   import type { SelectionBBox } from './types';
 
   interface Props {
@@ -95,15 +97,30 @@
     autoFitBounds = true,
   }: Props = $props();
 
+  // 底图坐标系：高德 / 腾讯 是 GCJ-02，与库里存的 WGS-84 相差 300~600 米，
+  // 渲染标记前要正转换，用地图坐标反查数据前要逆转换。
+  function currentCoordinateSystem(): MapCoordinateSystem {
+    try {
+      return serverConfigManager.value.mapCoordinateSystem ?? MapCoordinateSystem.Wgs84;
+    } catch {
+      // server config 尚未就绪时先按 WGS-84 处理，渲染后会自行修正
+      return MapCoordinateSystem.Wgs84;
+    }
+  }
+
+  const coordinateSystem = $derived(currentCoordinateSystem());
+
   // Calculate initial bounds from markers once during initialization
   const initialBounds = (() => {
     if (!autoFitBounds || center || zoom !== undefined || !mapMarkers || mapMarkers.length === 0) {
       return undefined;
     }
 
+    const system = currentCoordinateSystem();
     const bounds = new LngLatBounds();
     for (const marker of mapMarkers) {
-      bounds.extend([marker.lon, marker.lat]);
+      const [latitude, longitude] = toMapCoordinate(marker.lat, marker.lon, system);
+      bounds.extend([longitude, latitude]);
     }
     return bounds;
   })();
@@ -113,8 +130,12 @@
   let abortController: AbortController;
 
   const mapTheme = $derived($mapSettings.allowDarkMode ? themeManager.value : Theme.Light);
+  // 内置地图源直接返回 style 对象；immich / custom 回退到管理端配置的 style URL
   const styleUrl = $derived(
-    mapTheme === Theme.Dark ? serverConfigManager.value.mapDarkStyleUrl : serverConfigManager.value.mapLightStyleUrl,
+    getProviderStyle(serverConfigManager.value.mapProvider, mapTheme) ??
+      (mapTheme === Theme.Dark
+        ? serverConfigManager.value.mapDarkStyleUrl
+        : serverConfigManager.value.mapLightStyleUrl),
   );
 
   export function addClipMapMarker(lng: number, lat: number) {
@@ -126,8 +147,9 @@
       marker.remove();
     }
 
-    center = { lng, lat };
-    marker = new Marker().setLngLat([lng, lat]).addTo(map);
+    const [mapLatitude, mapLongitude] = toMapCoordinate(lat, lng, coordinateSystem);
+    center = { lng: mapLongitude, lat: mapLatitude };
+    marker = new Marker().setLngLat([mapLongitude, mapLatitude]).addTo(map);
   }
 
   function handleAssetClick(assetId: string, map: Map | null) {
@@ -161,7 +183,16 @@
         north = Math.max(north, latitude);
       }
 
-      const bbox = { west, south, east, north };
+      // 地图坐标 -> WGS-84，bbox 会用于服务端查询
+      const [southWestLatitude, southWestLongitude] = fromMapCoordinate(south, west, coordinateSystem);
+      const [northEastLatitude, northEastLongitude] = fromMapCoordinate(north, east, coordinateSystem);
+
+      const bbox = {
+        west: southWestLongitude,
+        south: southWestLatitude,
+        east: northEastLongitude,
+        north: northEastLatitude,
+      };
       onClusterSelect(ids, bbox);
       return;
     }
@@ -175,7 +206,9 @@
     }
 
     const { lng, lat } = event.lngLat;
-    onClickPoint({ lng, lat });
+    // 回调方需要 WGS-84（会写回数据库），标记本身用地图坐标
+    const [wgsLatitude, wgsLongitude] = fromMapCoordinate(lat, lng, coordinateSystem);
+    onClickPoint({ lng: wgsLongitude, lat: wgsLatitude });
 
     if (marker) {
       marker.remove();
@@ -189,9 +222,10 @@
   type FeaturePoint = Feature<Point, { id: string; city: string | null; state: string | null; country: string | null }>;
 
   const asFeature = (marker: MapMarkerResponseDto): FeaturePoint => {
+    const [latitude, longitude] = toMapCoordinate(marker.lat, marker.lon, coordinateSystem);
     return {
       type: 'Feature',
-      geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
+      geometry: { type: 'Point', coordinates: [longitude, latitude] },
       properties: {
         id: marker.id,
         city: marker.city,
@@ -204,9 +238,10 @@
   const asMarker = (feature: Feature<Geometry, GeoJsonProperties>): MapMarkerResponseDto => {
     const featurePoint = feature as FeaturePoint;
     const coords = LngLat.convert(featurePoint.geometry.coordinates as [number, number]);
+    const [latitude, longitude] = fromMapCoordinate(coords.lat, coords.lng, coordinateSystem);
     return {
-      lat: coords.lat,
-      lon: coords.lng,
+      lat: latitude,
+      lon: longitude,
       id: featurePoint.properties.id,
       city: featurePoint.properties.city,
       state: featurePoint.properties.state,
@@ -347,13 +382,22 @@
     const showAll = east - west >= 360;
     const visibleIds = showAll
       ? mapMarkers.map(({ id }) => id)
-      : mapMarkers.filter(({ lon, lat }) => bounds.contains([lon, lat])).map(({ id }) => id);
+      : mapMarkers
+          .filter(({ lon, lat }) => {
+            const [mapLatitude, mapLongitude] = toMapCoordinate(lat, lon, coordinateSystem);
+            return bounds.contains([mapLongitude, mapLatitude]);
+          })
+          .map(({ id }) => id);
+
+    // 地图坐标 -> WGS-84，bbox 会用于服务端查询
+    const [southWestLatitude, southWestLongitude] = fromMapCoordinate(bounds.getSouth(), west, coordinateSystem);
+    const [northEastLatitude, northEastLongitude] = fromMapCoordinate(bounds.getNorth(), east, coordinateSystem);
 
     const bbox: SelectionBBox = {
-      west: showAll ? -180 : west,
-      south: showAll ? -90 : bounds.getSouth(),
-      east: showAll ? 180 : east,
-      north: showAll ? 90 : bounds.getNorth(),
+      west: showAll ? -180 : southWestLongitude,
+      south: showAll ? -90 : southWestLatitude,
+      east: showAll ? 180 : northEastLongitude,
+      north: showAll ? 90 : northEastLatitude,
     };
     onClusterSelect(visibleIds, bbox);
   };

@@ -141,6 +141,8 @@ const updatedConfig = Object.freeze<SystemConfig>({
     enabled: true,
     lightStyle: 'https://tiles.immich.cloud/v1/style/light.json',
     darkStyle: 'https://tiles.immich.cloud/v1/style/dark.json',
+    provider: 'immich',
+    coordinateSystem: 'wgs84',
   },
   nightlyTasks: {
     startTime: '00:00',

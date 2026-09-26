@@ -169,6 +169,8 @@ describe(ServerService.name, () => {
         publicUsers: true,
         mapDarkStyleUrl: 'https://tiles.immich.cloud/v1/style/dark.json',
         mapLightStyleUrl: 'https://tiles.immich.cloud/v1/style/light.json',
+        mapProvider: 'immich',
+        mapCoordinateSystem: 'wgs84',
         maintenanceMode: false,
         minFaces: 3,
       });

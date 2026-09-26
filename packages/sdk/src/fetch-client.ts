@@ -253,12 +253,16 @@ export type AdminConfigMachineLearningDto = {
     urls: string[];
 };
 export type AdminConfigMapDto = {
+    /** Coordinate reference system of the selected map tiles */
+    coordinateSystem: MapCoordinateSystem;
     /** Dark map style URL */
     darkStyle: string;
     /** Enabled */
     enabled: boolean;
     /** Light map style URL */
     lightStyle: string;
+    /** Map tile provider */
+    provider: MapProvider;
 };
 export type AdminConfigFacesDto = {
     /** Import */
@@ -2715,6 +2719,10 @@ export type ServerConfigDto = {
     mapDarkStyleUrl: string;
     /** Map light style URL */
     mapLightStyleUrl: string;
+    /** Selected map tile provider */
+    mapProvider: MapProvider;
+    /** Coordinate reference system of the selected map tiles */
+    mapCoordinateSystem: MapCoordinateSystem;
     /** People min faces server default */
     minFaces: number;
     /** OAuth account management URL */
@@ -7833,6 +7841,20 @@ export enum TranscodePolicy {
 export enum Colorspace {
     Srgb = "srgb",
     P3 = "p3"
+}
+export enum MapProvider {
+    Immich = "immich",
+    Amap = "amap",
+    AmapSatellite = "amapSatellite",
+    Tencent = "tencent",
+    Osm = "osm",
+    Carto = "carto",
+    Custom = "custom"
+}
+export enum MapCoordinateSystem {
+    Wgs84 = "wgs84",
+    Gcj02 = "gcj02",
+    Bd09 = "bd09"
 }
 export enum ImageFormat {
     Jpeg = "jpeg",
