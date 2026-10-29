@@ -1,9 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
-import { defaults, SystemConfig } from 'src/dtos/config.dto';
+import type { DeepPartial } from 'src/types.js';
+import { SystemConfig, defaults } from 'src/dtos/config.dto.js';
 import {
   AudioCodec,
-  Colorspace,
   CQMode,
+  Colorspace,
   HlsVideoResolution,
   ImageFormat,
   LogLevel,
@@ -17,11 +18,10 @@ import {
   TranscodePolicy,
   VideoCodec,
   VideoContainer,
-} from 'src/enum';
-import { SystemConfigService } from 'src/services/system-config.service';
-import { DeepPartial } from 'src/types';
-import { mockEnvData } from 'test/repositories/config.repository.mock';
-import { newTestService, ServiceMocks } from 'test/utils';
+} from 'src/enum.js';
+import { SystemConfigService } from 'src/services/system-config.service.js';
+import { mockEnvData } from 'test/repositories/config.repository.mock.js';
+import { ServiceMocks, newTestService } from 'test/utils.js';
 
 const partialConfig = {
   ffmpeg: { crf: 30 },
@@ -180,6 +180,11 @@ const updatedConfig = Object.freeze<SystemConfig>({
     storageLabelClaim: 'preferred_username',
     storageQuotaClaim: 'immich_quota',
     roleClaim: 'immich_role',
+  },
+  passkey: {
+    enabled: true,
+    domain: null,
+    additionalDomains: [],
   },
   passwordLogin: {
     enabled: true,
@@ -419,14 +424,14 @@ describe(SystemConfigService.name, () => {
       },
     ];
 
-    for (const { should, externalDomain, result } of externalDomainTests) {
+    for (const { should, externalDomain, result = 'https://demo.immich.app' } of externalDomainTests) {
       it(`should normalize an external domain ${should}`, async () => {
         mocks.config.getEnv.mockReturnValue(mockEnvData({ configFile: 'immich-config.json' }));
         const partialConfig = { server: { externalDomain } };
         mocks.systemMetadata.readFile.mockResolvedValue(JSON.stringify(partialConfig));
 
         const config = await sut.getAdminConfig();
-        expect(config.server.externalDomain).toEqual(result ?? 'https://demo.immich.app');
+        expect(config.server.externalDomain).toEqual(result);
       });
     }
 

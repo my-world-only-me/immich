@@ -1,41 +1,39 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { parse } from 'cookie';
+import { parseCookie } from 'cookie';
 import { NextFunction, Request, Response } from 'express';
 import { jwtVerify } from 'jose';
 import { readFileSync } from 'node:fs';
 import { IncomingHttpHeaders } from 'node:http';
-import { serverVersion } from 'src/constants';
-import { StorageCore } from 'src/cores/storage.core';
+import type { MaintenanceModeState } from 'src/types.js';
+import { serverVersion } from 'src/constants.js';
+import { StorageCore } from 'src/cores/storage.core.js';
 import {
   MaintenanceAuthDto,
   MaintenanceDetectInstallResponseDto,
   MaintenanceStatusResponseDto,
   SetMaintenanceModeDto,
-} from 'src/dtos/maintenance.dto';
-import { ServerConfigDto, ServerPingResponse, ServerVersionResponseDto } from 'src/dtos/server.dto';
-import { DatabaseLock, ImmichCookie, MaintenanceAction, SystemMetadataKey } from 'src/enum';
-import { MaintenanceHealthRepository } from 'src/maintenance/maintenance-health.repository';
-import { MaintenanceWebsocketRepository } from 'src/maintenance/maintenance-websocket.repository';
-import { AppRepository } from 'src/repositories/app.repository';
-import { ConfigRepository } from 'src/repositories/config.repository';
-import { DatabaseRepository } from 'src/repositories/database.repository';
-import { LoggingRepository } from 'src/repositories/logging.repository';
-import { ProcessRepository } from 'src/repositories/process.repository';
-import { StorageRepository } from 'src/repositories/storage.repository';
-import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository';
-import { type ApiService as _ApiService } from 'src/services/api.service';
-import { type BaseService as _BaseService } from 'src/services/base.service';
-import { DatabaseBackupService } from 'src/services/database-backup.service';
-import { type ServerService as _ServerService } from 'src/services/server.service';
-import { type VersionService as _VersionService } from 'src/services/version.service';
-import { MaintenanceModeState } from 'src/types';
-import { getConfig } from 'src/utils/config';
-import { createMaintenanceLoginUrl, detectPriorInstall } from 'src/utils/maintenance';
-import { getExternalDomain } from 'src/utils/misc';
+} from 'src/dtos/maintenance.dto.js';
+import { ServerConfigDto, ServerPingResponse, ServerVersionResponseDto } from 'src/dtos/server.dto.js';
+import { DatabaseLock, ImmichCookie, MaintenanceAction, SystemMetadataKey } from 'src/enum.js';
+import { MaintenanceHealthRepository } from 'src/maintenance/maintenance-health.repository.js';
+import { MaintenanceWebsocketRepository } from 'src/maintenance/maintenance-websocket.repository.js';
+import { AppRepository } from 'src/repositories/app.repository.js';
+import { ConfigRepository } from 'src/repositories/config.repository.js';
+import { DatabaseRepository } from 'src/repositories/database.repository.js';
+import { LoggingRepository } from 'src/repositories/logging.repository.js';
+import { ProcessRepository } from 'src/repositories/process.repository.js';
+import { StorageRepository } from 'src/repositories/storage.repository.js';
+import { SystemMetadataRepository } from 'src/repositories/system-metadata.repository.js';
+import { type ApiService as _ApiService } from 'src/services/api.service.js';
+import { type BaseService as _BaseService } from 'src/services/base.service.js';
+import { DatabaseBackupService } from 'src/services/database-backup.service.js';
+import { type ServerService as _ServerService } from 'src/services/server.service.js';
+import { type VersionService as _VersionService } from 'src/services/version.service.js';
+import { getConfig } from 'src/utils/config.js';
+import { createMaintenanceLoginUrl, detectPriorInstall } from 'src/utils/maintenance.js';
+import { getExternalDomain } from 'src/utils/misc.js';
 
-/**
- * This service is available inside of maintenance mode to manage maintenance mode
- */
+/** This service is available inside of maintenance mode to manage maintenance mode */
 @Injectable()
 export class MaintenanceWorkerService {
   #secret: string | null = null;
@@ -87,9 +85,7 @@ export class MaintenanceWorkerService {
     }
   }
 
-  /**
-   * {@link _BaseService.configRepos}
-   */
+  /** {@link _BaseService.configRepos} */
   private get configRepos() {
     return {
       configRepo: this.configRepository,
@@ -98,25 +94,19 @@ export class MaintenanceWorkerService {
     };
   }
 
-  /**
-   * {@link _BaseService.prototype.getConfig}
-   */
+  /** {@link _BaseService.prototype.getConfig} */
   private getConfig(options: { withCache: boolean }) {
     return getConfig(this.configRepos, options);
   }
 
-  /**
-   * {@link _ServerService.getSystemConfig}
-   */
+  /** {@link _ServerService.getSystemConfig} */
   getSystemConfig() {
     return {
       maintenanceMode: true,
     } as ServerConfigDto;
   }
 
-  /**
-   * {@link _VersionService.getVersion}
-   */
+  /** {@link _VersionService.getVersion} */
   getVersion() {
     return ServerVersionResponseDto.fromSemVer(serverVersion);
   }
@@ -125,9 +115,7 @@ export class MaintenanceWorkerService {
     return { res: 'pong' };
   }
 
-  /**
-   * {@link _ApiService.ssr}
-   */
+  /** {@link _ApiService.ssr} */
   ssr(excludePaths: string[]) {
     const { resourcePaths } = this.configRepository.getEnv();
 
@@ -158,9 +146,7 @@ export class MaintenanceWorkerService {
     };
   }
 
-  /**
-   * {@link _StorageService.detectMediaLocation}
-   */
+  /** {@link _StorageService.detectMediaLocation} */
   detectMediaLocation(): string {
     const envData = this.configRepository.getEnv();
     if (envData.storage.mediaLocation) {
@@ -240,7 +226,7 @@ export class MaintenanceWorkerService {
   }
 
   async authenticate(headers: IncomingHttpHeaders): Promise<MaintenanceAuthDto> {
-    const jwtToken = parse(headers.cookie || '')[ImmichCookie.MaintenanceToken];
+    const jwtToken = parseCookie(headers.cookie || '')[ImmichCookie.MaintenanceToken];
     return this.login(jwtToken);
   }
 

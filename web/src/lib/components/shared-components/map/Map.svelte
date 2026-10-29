@@ -1,23 +1,20 @@
 <script lang="ts" module>
-  import mapboxRtlUrl from '@mapbox/mapbox-gl-rtl-text?url';
-  import { addProtocol, setRTLTextPlugin, setWorkerUrl } from 'maplibre-gl';
+  import { addProtocol, setWorkerUrl } from 'maplibre-gl';
   import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
   import { Protocol } from 'pmtiles';
 
   let protocol = new Protocol();
   setWorkerUrl(workerUrl);
   void addProtocol('pmtiles', protocol.tile);
-  void setRTLTextPlugin(mapboxRtlUrl, true);
 </script>
 
 <script lang="ts">
   import { afterNavigate } from '$app/navigation';
-  import OnEvents from '$lib/components/OnEvents.svelte';
-  import { assetViewerManager } from '$lib/managers/asset-viewer-manager.svelte';
-  import { serverConfigManager } from '$lib/managers/server-config-manager.svelte';
-  import MapSettingsModal from '$lib/modals/MapSettingsModal.svelte';
-  import { mapSettings } from '$lib/stores/preferences.store';
-  import { getAssetMediaUrl, handlePromiseError } from '$lib/utils';
+  import OnEvents from '#lib/components/OnEvents.svelte';
+  import { assetViewerManager } from '#lib/managers/asset-viewer-manager.svelte.ts';
+  import MapSettingsModal from '#lib/modals/MapSettingsModal.svelte';
+  import { mapSettings } from '#lib/stores/preferences.store.ts';
+  import { getAssetMediaUrl, handlePromiseError } from '#lib/utils.ts';
   import { getMapMarkers, MapCoordinateSystem, type MapMarkerResponseDto } from '@immich/sdk';
   import { Alert, Container, Icon, modalManager, Text, Theme, themeManager } from '@immich/ui';
   import { mdiCog, mdiImageMultiple, mdiMap, mdiMapMarker } from '@mdi/js';
@@ -52,6 +49,14 @@
   import { fromMapCoordinate, toMapCoordinate } from './coordinate-transform';
   import { getProviderStyle } from './map-provider-styles';
   import type { SelectionBBox } from './types';
+  import { createPreloadedQuery } from '#lib/queries/client.ts';
+  import { getPublicConfigQuery } from '#lib/queries/config-public.query.ts';
+  import { getServerConfigQuery } from '#lib/queries/server-info.query.ts';
+
+  const query = createPreloadedQuery(getPublicConfigQuery);
+  const publicConfig = $derived(query.data);
+  const serverConfigQuery = createPreloadedQuery(getServerConfigQuery);
+  const serverConfig = $derived(serverConfigQuery.data);
 
   interface Props {
     mapMarkers?: MapMarkerResponseDto[];
@@ -100,12 +105,7 @@
   // 底图坐标系：高德 / 腾讯 是 GCJ-02，与库里存的 WGS-84 相差 300~600 米，
   // 渲染标记前要正转换，用地图坐标反查数据前要逆转换。
   function currentCoordinateSystem(): MapCoordinateSystem {
-    try {
-      return serverConfigManager.value.mapCoordinateSystem ?? MapCoordinateSystem.Wgs84;
-    } catch {
-      // server config 尚未就绪时先按 WGS-84 处理，渲染后会自行修正
-      return MapCoordinateSystem.Wgs84;
-    }
+    return serverConfig?.mapCoordinateSystem ?? MapCoordinateSystem.Wgs84;
   }
 
   const coordinateSystem = $derived(currentCoordinateSystem());
@@ -132,10 +132,8 @@
   const mapTheme = $derived($mapSettings.allowDarkMode ? themeManager.value : Theme.Light);
   // 内置地图源直接返回 style 对象；immich / custom 回退到管理端配置的 style URL
   const styleUrl = $derived(
-    getProviderStyle(serverConfigManager.value.mapProvider, mapTheme) ??
-      (mapTheme === Theme.Dark
-        ? serverConfigManager.value.mapDarkStyleUrl
-        : serverConfigManager.value.mapLightStyleUrl),
+    (serverConfig?.mapProvider ? getProviderStyle(serverConfig.mapProvider, mapTheme) : undefined) ??
+      (mapTheme === Theme.Dark ? publicConfig.map.darkStyle : publicConfig.map.lightStyle),
   );
 
   export function addClipMapMarker(lng: number, lat: number) {
@@ -302,7 +300,9 @@
     }
   };
 
-  afterNavigate(() => {
+  afterNavigate(({ shallow, type }) => {
+    if (shallow && type === 'goto') return;
+
     if (!map) {
       return;
     }
