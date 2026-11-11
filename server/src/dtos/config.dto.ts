@@ -1,8 +1,6 @@
 import { CronExpression } from '@nestjs/schedule';
 import { validateCronExpression } from 'cron';
-import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
-import type { DeepPartial } from 'src/types.js';
 import {
   AudioCodec,
   AudioCodecSchema,
@@ -36,6 +34,8 @@ import {
   VideoContainer,
   VideoContainerSchema,
 } from 'src/enum.js';
+import type { DeepPartial } from 'src/types.js';
+import { createZodDto } from 'src/zod.js';
 
 const { Admin, User, Public } = ConfigVisibility;
 
@@ -167,6 +167,7 @@ const AdminConfigSchemaWithVisibility = z
   .object({
     backup: z
       .object({
+        beta: configBool.default(false).optional().describe('Whether the backups feature is enabled'),
         database: z
           .object({
             enabled: configBool.describe('Enabled'),
@@ -550,7 +551,6 @@ const UserConfigSchema = applyVisibility(User)! as z.ZodType<DeepPartial<SystemC
 const PublicConfigSchema = applyVisibility(Public)! as z.ZodType<DeepPartial<SystemConfig>>;
 
 // prevent visibility metadata from leaking to openapi spec
-// eslint-disable-next-line unicorn/no-top-level-side-effects
 stripVisibilityMetadata(AdminConfigSchemaWithVisibility);
 
 const ConfigTemplateStorageOptionSchema = z
@@ -590,6 +590,7 @@ export function mapPublicConfig(config: SystemConfig): PublicConfigDto {
 
 export const defaults = Object.freeze<SystemConfig>({
   backup: {
+    beta: false,
     database: {
       enabled: true,
       cronExpression: CronExpression.EVERY_DAY_AT_2AM,

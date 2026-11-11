@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { createPreloadedQuery } from '#lib/queries/client.ts';
-  import { getAdminConfigQuery } from '#lib/queries/config-admin.query.ts';
-  import { cloneDeep } from 'lodash-es';
   import { getProviderCoordinateSystem } from '#lib/components/shared-components/map/map-provider-styles.ts';
   import SettingAccordion from '#lib/components/shared-components/settings/SettingAccordion.svelte';
   import SettingInputField from '#lib/components/shared-components/settings/SettingInputField.svelte';
@@ -10,8 +7,11 @@
   import { SettingInputFieldType } from '#lib/constants.ts';
   import FormatMessage from '#lib/elements/FormatMessage.svelte';
   import { featureFlagsManager } from '#lib/managers/feature-flags-manager.svelte.ts';
+  import { createPreloadedQuery } from '#lib/queries/client.ts';
+  import { getAdminConfigQuery } from '#lib/queries/config-admin.query.ts';
   import { MapCoordinateSystem, MapProvider } from '@immich/sdk';
   import { Link } from '@immich/ui';
+  import { cloneDeep } from 'lodash-es';
   import { t } from 'svelte-i18n';
   import { fade } from 'svelte/transition';
   import SettingSelect from './SettingSelect.svelte';

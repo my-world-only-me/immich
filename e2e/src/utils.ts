@@ -31,6 +31,7 @@ import {
   createUserAdmin,
   deleteAssets,
   deleteDatabaseBackup,
+  deleteLibrary,
   getAssetInfo,
   getConfig,
   getConfigDefaults,
@@ -466,6 +467,8 @@ export const utils = {
   updateLibrary: (accessToken: string, id: string, dto: UpdateLibraryDto) =>
     updateLibrary({ id, updateLibraryDto: dto }, { headers: asBearerAuth(accessToken) }),
 
+  deleteLibrary: (accessToken: string, id: string) => deleteLibrary({ id }, { headers: asBearerAuth(accessToken) }),
+
   createPartner: (accessToken: string, id: string) =>
     createPartner({ partnerCreateDto: { sharedWithId: id } }, { headers: asBearerAuth(accessToken) }),
 
@@ -712,7 +715,6 @@ export const utils = {
   },
 };
 
-// eslint-disable-next-line unicorn/no-top-level-side-effects
 utils.initSdk();
 
 if (!existsSync(`${testAssetDir}/albums`)) {
